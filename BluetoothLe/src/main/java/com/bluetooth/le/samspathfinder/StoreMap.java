@@ -2,7 +2,6 @@ package com.bluetooth.le.samspathfinder;
 
 import com.bluetooth.le.pathfinding.Mover;
 import com.bluetooth.le.pathfinding.TileBasedMap;
-import com.bluetooth.le.pathfinding.example.UnitMover;
 
 /**
  * Created by stadiko on 1/11/14.
@@ -128,7 +127,7 @@ public class StoreMap implements TileBasedMap {
             return true;
         }
 
-        int unit = ((UnitMover) mover).getType();
+        int unit = PERSON;//((UnitMover) mover).getType();
 
         // person can only move across walkable path
         if (unit == PERSON) {
