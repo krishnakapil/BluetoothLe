@@ -3,14 +3,37 @@ package com.bluetooth.le;
 import android.app.Activity;
 import android.graphics.PointF;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.bluetooth.le.samspathfinder.MapSurfaceView;
+import com.bluetooth.le.samspathfinder.StoreMap;
 
 public class MainActivity extends Activity {
 
     private BeaconModel[] data;
     private TextView mResult;
+
+    private MapSurfaceView mStoreMap;
+
+    /**
+     * Data from the server
+     * Object Type refer to StoreMap (AISLE = 1 ,WALKABLE = 2)
+     * 0;1;1;2;8 - OBJECT Type ; X coordinate ; Y coordinate ; Width ; Height
+     */
+    private String storeMapData = "1;1;1;2;10&1;4;1;2;10&1;7;1;2;10";
+
+    /**
+     * Data from the server
+     * Number of horizontal tiles the map is divided into
+     */
+    private int storeMapWidth = 10;
+
+    /**
+     * Data from the server
+     * Number of Vertical tiles the map is divided into
+     */
+    private int storeMapHeight = 14;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,28 +48,16 @@ public class MainActivity extends Activity {
         data[2] = new BeaconModel(5f, 4f, 1.414213f);
 
         getUserPosition();
+
+        drawMap();
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+    private void drawMap() {
+        mStoreMap = new MapSurfaceView(MainActivity.this, new StoreMap(storeMapWidth, storeMapHeight, storeMapData));
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        ((RelativeLayout) findViewById(R.id.container)).addView(mStoreMap, params);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     //Method to find user coordinates based on 3 nearest points
 

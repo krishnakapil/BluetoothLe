@@ -1,52 +1,74 @@
 package com.bluetooth.le.samspathfinder;
 
+import android.util.Log;
+
 import com.bluetooth.le.pathfinding.Mover;
 import com.bluetooth.le.pathfinding.TileBasedMap;
-import com.bluetooth.le.pathfinding.example.UnitMover;
 
 /**
  * Created by stadiko on 1/11/14.
  */
 public class StoreMap implements TileBasedMap {
-    /**
-     * The map width in tiles
-     */
-    public static final int WIDTH = 100;
-    /**
-     * The map height in tiles
-     */
-    public static final int HEIGHT = 100;
 
+    private static final String TAG = StoreMap.class.getSimpleName();
     /**
      * Indicate aisle terrain at a given location
      */
-    public static final int AISLE = 0;
+    public static final int AISLE = 1;
 
     /**
      * Indicate walkable path terrain at a given location
      */
-    public static final int WALKABLE = 1;
+    public static final int WALKABLE = 2;
 
     /**
      * Indicate person terrain at a given location
      */
-    public static final int PERSON = 2;
+    public static final int PERSON = 3;
+
+    /**
+     * The map width in tiles
+     */
+    private int WIDTH;
+    /**
+     * The map height in tiles
+     */
+    private int HEIGHT;
 
     /**
      * The terrain settings for each tile in the map
      */
-    private int[][] terrain = new int[WIDTH][HEIGHT];
+    private int[][] terrain;
     /**
      * The unit in each tile of the map
      */
-    private int[][] units = new int[WIDTH][HEIGHT];
+    private int[][] units;
     /**
      * Indicator if a given tile has been visited during the search
      */
-    private boolean[][] visited = new boolean[WIDTH][HEIGHT];
+    private boolean[][] visited;
 
-    public StoreMap() {
-        //TODO : Populate the map data here
+    /**
+     * Inputs required to create a map
+     * Number of horizontal and vertical tiles the map is divided into
+     * What Object is at each tile
+     * Map Id to Load
+     */
+    public StoreMap(int width, int height, String data) {
+        WIDTH = width;
+        HEIGHT = height;
+
+        terrain = new int[WIDTH][HEIGHT];
+        units = new int[WIDTH][HEIGHT];
+        visited = new boolean[WIDTH][HEIGHT];
+
+        String[] val = data.split("&");
+        for (String line : val) {
+            String[] lineData = line.split(";");
+            fillArea(Integer.parseInt(lineData[1]), Integer.parseInt(lineData[2]), Integer.parseInt(lineData[3]), Integer.parseInt(lineData[4]), Integer.parseInt(lineData[0]));
+        }
+
+        units[9][HEIGHT -1] = PERSON;//TODO : Change this to current user locaiton
     }
 
     /**
@@ -61,6 +83,7 @@ public class StoreMap implements TileBasedMap {
     private void fillArea(int x, int y, int width, int height, int type) {
         for (int xp = x; xp < x + width; xp++) {
             for (int yp = y; yp < y + height; yp++) {
+                Log.v(TAG,"(x,y) : " + xp + " " + yp + " TYPE : " + type);
                 terrain[xp][yp] = type;
             }
         }
@@ -128,11 +151,11 @@ public class StoreMap implements TileBasedMap {
             return true;
         }
 
-        int unit = ((UnitMover) mover).getType();
+        int unit = PERSON;//((UnitMover) mover).getType();
 
-        // person can only move across walkable path
+        // person can only move across walkable path , blocked if AISLE
         if (unit == PERSON) {
-            return terrain[x][y] != WALKABLE;
+            return terrain[x][y] == AISLE;
         }
 
         // unknown unit so everything blocks
@@ -150,14 +173,14 @@ public class StoreMap implements TileBasedMap {
      * @see TileBasedMap#getHeightInTiles()
      */
     public int getHeightInTiles() {
-        return WIDTH;
+        return HEIGHT;
     }
 
     /**
      * @see TileBasedMap#getWidthInTiles()
      */
     public int getWidthInTiles() {
-        return HEIGHT;
+        return WIDTH;
     }
 
     /**
@@ -166,4 +189,5 @@ public class StoreMap implements TileBasedMap {
     public void pathFinderVisited(int x, int y) {
         visited[x][y] = true;
     }
+
 }
