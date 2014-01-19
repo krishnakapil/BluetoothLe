@@ -6,8 +6,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import com.bluetooth.le.pathfinding.AStarPathFinder;
+import com.bluetooth.le.pathfinding.Path;
+import com.bluetooth.le.pathfinding.PathFinder;
 
 /**
  * Created by stadiko on 1/13/14.
@@ -16,12 +21,31 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     private static final String TAG = MapSurfaceView.class.getSimpleName();
 
+    public static final int DRAW_MOVE_NONE = 1;
+    public static final int DRAW_MOVE_USER = 2;
+
+    public static int DRAW_TYPE = 0;
+
+    private static float SPEED = 0.1f;
+
+    private int mNewY;
+    private int mNewX;
+
     private SurfaceHolder mHolder;
-    private Canvas mCanvas;
     private StoreMap mStoreMap;
     private Paint mAislePaint;
     private Paint mDebugPaint;
+    private Paint mPathPaint;
     private Paint mUserPaint;
+
+    /**
+     * The path finder we'll use to search our map
+     */
+    private PathFinder finder;
+    /**
+     * The last path found for the current unit
+     */
+    private Path path;
     /**
      * Width of the MapSurfaceView in the parent
      */
@@ -57,6 +81,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public MapSurfaceView(Context context, AttributeSet attrs, int defStyle, StoreMap map) {
         super(context, attrs, defStyle);
+        finder = new AStarPathFinder(map, 500, true);
         mStoreMap = map;
         mHolder = getHolder();
         if (mHolder != null) {
@@ -89,10 +114,36 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        if (mCanvas == null) {
-            mCanvas = canvas;
+    public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+        //moveUserTo(9, 1);
+        moveUserTo(4, 0);
+        return true;
+    }
+
+    public void moveUserTo(int newX, int newY) {
+        mNewX = newX;
+        mNewY = newY;
+        path = finder.findPath((int) mStoreMap.getUserPosition().x, (int) mStoreMap.getUserPosition().y, newX, newY);
+        DRAW_TYPE = DRAW_MOVE_USER;
+        while (mStoreMap.getUserPosition().y >= mNewY) {
+            Canvas c = null;
+            try {
+                c = getHolder().lockCanvas();
+                synchronized (getHolder()) {
+                    onDraw(c);
+                }
+            } finally {
+                if (c != null) {
+                    getHolder().unlockCanvasAndPost(c);
+                }
+            }
         }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+
         if (mAislePaint == null) {
             mAislePaint = new Paint();
             mAislePaint.setColor(Color.BLUE);
@@ -100,6 +151,10 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         if (mDebugPaint == null) {
             mDebugPaint = new Paint();
             mDebugPaint.setColor(Color.GRAY);
+        }
+        if (mPathPaint == null) {
+            mPathPaint = new Paint();
+            mPathPaint.setColor(Color.YELLOW);
         }
         if (mUserPaint == null) {
             mUserPaint = new Paint();
@@ -122,12 +177,35 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mDebugPaint);//TODO: REMOVE THIS . FOR DEUBG PURPOSE
                 }
 
-                if (mStoreMap.getUnit(x, y) == StoreMap.PERSON) {
+                if (path != null) {
+                    if (path.contains(x, y)) {
+                        canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mPathPaint);
+                    }
+                }
+
+                if (mStoreMap.getUserPosition().x == x && mStoreMap.getUserPosition().y == y) {
                     //Draw User
                     canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
                 }
             }
         }
+
+        switch (DRAW_TYPE) {
+            case DRAW_MOVE_USER:
+                float userMapX = mStoreMap.getUserPosition().x * mTileWidth;
+                float userMapY;
+                float oldX = mStoreMap.getUserPosition().x;
+                float oldY = mStoreMap.getUserPosition().y;
+                float pathY = mStoreMap.getUserPosition().y;
+                oldY = oldY - SPEED;
+                mStoreMap.setUserPosition(oldX, oldY);
+                userMapY = mStoreMap.getUserPosition().y * mTileHeight;
+                canvas.drawCircle(userMapX + mTileWidth / 2, userMapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
+                break;
+            case DRAW_MOVE_NONE:
+                break;
+        }
+
 
     }
 }

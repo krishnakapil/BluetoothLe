@@ -1,5 +1,6 @@
 package com.bluetooth.le.samspathfinder;
 
+import android.graphics.PointF;
 import android.util.Log;
 
 import com.bluetooth.le.pathfinding.Mover;
@@ -15,17 +16,6 @@ public class StoreMap implements TileBasedMap {
      * Indicate aisle terrain at a given location
      */
     public static final int AISLE = 1;
-
-    /**
-     * Indicate walkable path terrain at a given location
-     */
-    public static final int WALKABLE = 2;
-
-    /**
-     * Indicate person terrain at a given location
-     */
-    public static final int PERSON = 3;
-
     /**
      * The map width in tiles
      */
@@ -40,9 +30,9 @@ public class StoreMap implements TileBasedMap {
      */
     private int[][] terrain;
     /**
-     * The unit in each tile of the map
+     * The user tile position on the map
      */
-    private int[][] units;
+    private PointF mUserPosition;
     /**
      * Indicator if a given tile has been visited during the search
      */
@@ -54,12 +44,11 @@ public class StoreMap implements TileBasedMap {
      * What Object is at each tile
      * Map Id to Load
      */
-    public StoreMap(int width, int height, String data) {
+    public StoreMap(int width, int height, String data, PointF userPostition) {
         WIDTH = width;
         HEIGHT = height;
 
         terrain = new int[WIDTH][HEIGHT];
-        units = new int[WIDTH][HEIGHT];
         visited = new boolean[WIDTH][HEIGHT];
 
         String[] val = data.split("&");
@@ -68,7 +57,7 @@ public class StoreMap implements TileBasedMap {
             fillArea(Integer.parseInt(lineData[1]), Integer.parseInt(lineData[2]), Integer.parseInt(lineData[3]), Integer.parseInt(lineData[4]), Integer.parseInt(lineData[0]));
         }
 
-        units[9][HEIGHT -1] = PERSON;//TODO : Change this to current user locaiton
+        mUserPosition = userPostition;
     }
 
     /**
@@ -83,7 +72,7 @@ public class StoreMap implements TileBasedMap {
     private void fillArea(int x, int y, int width, int height, int type) {
         for (int xp = x; xp < x + width; xp++) {
             for (int yp = y; yp < y + height; yp++) {
-                Log.v(TAG,"(x,y) : " + xp + " " + yp + " TYPE : " + type);
+                Log.v(TAG, "(x,y) : " + xp + " " + yp + " TYPE : " + type);
                 terrain[xp][yp] = type;
             }
         }
@@ -119,53 +108,33 @@ public class StoreMap implements TileBasedMap {
         return terrain[x][y];
     }
 
-    /**
-     * Get the unit at a given location
-     *
-     * @param x The x coordinate of the tile to check for a unit
-     * @param y The y coordinate of the tile to check for a unit
-     * @return The ID of the unit at the given location or 0 if there is no unit
-     */
-    public int getUnit(int x, int y) {
-        return units[x][y];
+    public PointF getUserPosition() {
+        return mUserPosition;
     }
 
-    /**
-     * Set the unit at the given location
-     *
-     * @param x    The x coordinate of the location where the unit should be set
-     * @param y    The y coordinate of the location where the unit should be set
-     * @param unit The ID of the unit to be placed on the map, or 0 to clear the unit at the
-     *             given location
-     */
-    public void setUnit(int x, int y, int unit) {
-        units[x][y] = unit;
+    public void setUserPosition(PointF userPosition) {
+        mUserPosition = userPosition;
     }
 
+    public void setUserPosition(float x, float y) {
+        mUserPosition = new PointF(x , y);
+    }
     /**
-     * @see TileBasedMap#blocked(com.bluetooth.le.pathfinding.Mover, int, int)
+     * @see TileBasedMap#blocked(int, int)
      */
-    public boolean blocked(Mover mover, int x, int y) {
-        // if theres a unit at the location, then it's blocked
-        if (getUnit(x, y) != 0) {
+    public boolean blocked(int x, int y) {
+        // if theres a user at the location, then it's blocked
+        if (mUserPosition.x == x && mUserPosition.y == y) {
             return true;
         }
 
-        int unit = PERSON;//((UnitMover) mover).getType();
-
-        // person can only move across walkable path , blocked if AISLE
-        if (unit == PERSON) {
-            return terrain[x][y] == AISLE;
-        }
-
-        // unknown unit so everything blocks
-        return true;
+        return terrain[x][y] == AISLE;
     }
 
     /**
-     * @see TileBasedMap#getCost(Mover, int, int, int, int)
+     * @see TileBasedMap#getCost(int, int, int, int)
      */
-    public float getCost(Mover mover, int sx, int sy, int tx, int ty) {
+    public float getCost(int sx, int sy, int tx, int ty) {
         return 1;
     }
 

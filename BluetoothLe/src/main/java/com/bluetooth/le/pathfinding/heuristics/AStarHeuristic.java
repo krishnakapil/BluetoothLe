@@ -1,6 +1,5 @@
 package com.bluetooth.le.pathfinding.heuristics;
 
-import com.bluetooth.le.pathfinding.Mover;
 import com.bluetooth.le.pathfinding.TileBasedMap;
 
 /**
@@ -19,12 +18,11 @@ public interface AStarHeuristic {
 	 * be searched.
 	 * 
 	 * @param map The map on which the path is being found
-	 * @param mover The entity that is moving along the path
 	 * @param x The x coordinate of the tile being evaluated
 	 * @param y The y coordinate of the tile being evaluated
 	 * @param tx The x coordinate of the target location
 	 * @param ty Teh y coordinate of the target location
 	 * @return The cost associated with the given tile
 	 */
-	public float getCost(TileBasedMap map, Mover mover, int x, int y, int tx, int ty);
+	public float getCost(TileBasedMap map, int x, int y, int tx, int ty);
 }

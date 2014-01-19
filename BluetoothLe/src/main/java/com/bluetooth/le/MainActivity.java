@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
     }
 
     private void drawMap() {
-        mStoreMap = new MapSurfaceView(MainActivity.this, new StoreMap(storeMapWidth, storeMapHeight, storeMapData));
+        mStoreMap = new MapSurfaceView(MainActivity.this, new StoreMap(storeMapWidth, storeMapHeight, storeMapData, new PointF(storeMapWidth - 1, storeMapHeight - 1)));
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         ((RelativeLayout) findViewById(R.id.container)).addView(mStoreMap, params);
     }

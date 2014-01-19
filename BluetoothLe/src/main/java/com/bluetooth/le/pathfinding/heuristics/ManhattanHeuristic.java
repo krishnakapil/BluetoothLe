@@ -1,7 +1,6 @@
 package com.bluetooth.le.pathfinding.heuristics;
 
 
-import com.bluetooth.le.pathfinding.Mover;
 import com.bluetooth.le.pathfinding.TileBasedMap;
 
 /**
@@ -26,9 +25,9 @@ public class ManhattanHeuristic implements AStarHeuristic {
     }
 
     /**
-     * @see AStarHeuristic#getCost(TileBasedMap, Mover, int, int, int, int)
+     * @see AStarHeuristic#getCost(TileBasedMap, int, int, int, int)
      */
-    public float getCost(TileBasedMap map, Mover mover, int x, int y, int tx,
+    public float getCost(TileBasedMap map, int x, int y, int tx,
                          int ty) {
         return minimumCost * (Math.abs(x - tx) + Math.abs(y - ty));
     }
