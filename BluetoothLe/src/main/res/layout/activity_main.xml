@@ -1,19 +1,51 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bluetooth.le.MainActivity"
-    tools:ignore="MergeRootFrame"
-    android:padding="10dp">
+    android:padding="10dp"
+    android:orientation="vertical">
 
-
-    <TextView
-        android:id="@+id/result_text"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:textSize="14sp" />
+        android:orientation="horizontal"
+        android:layout_margin="15dp"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/search_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:padding="10dp"
+            android:hint="@string/search" />
+
+        <ImageButton
+            android:id="@+id/search_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_search"
+            android:background="@null" />
+
+    </LinearLayout>
 
 
-</RelativeLayout>
+    <Button
+        android:id="@+id/showmapBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_map"
+        android:layout_margin="15dp"
+        android:padding="10dp" />
+
+    <Button
+        android:id="@+id/myListBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/my_list"
+        android:layout_margin="15dp"
+        android:padding="10dp" />
+
+
+</LinearLayout>

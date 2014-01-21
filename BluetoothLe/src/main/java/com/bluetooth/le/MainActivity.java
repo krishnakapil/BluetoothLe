@@ -1,23 +1,20 @@
 package com.bluetooth.le;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.PointF;
 import android.os.Bundle;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
 
 import com.bluetooth.le.model.BeaconModel;
 import com.bluetooth.le.model.Store;
-import com.bluetooth.le.samspathfinder.MapSurfaceView;
 
 public class MainActivity extends Activity {
 
-
-    private TextView mResult;
-
-    private MapSurfaceView mStoreMap;
-
     private Store mCurrentStore;
+
+    private Button showMapBtn;
 
 
     @Override
@@ -25,20 +22,18 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResult = (TextView) findViewById(R.id.result_text);
-
         mCurrentStore = new Store();
 
+        showMapBtn = (Button) findViewById(R.id.showmapBtn);
+        showMapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                startActivity(intent);
+            }
+        });
+
         //getUserPosition();
-
-        drawMap();
-    }
-
-
-    private void drawMap() {
-        mStoreMap = new MapSurfaceView(MainActivity.this, mCurrentStore);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-        ((RelativeLayout) findViewById(R.id.container)).addView(mStoreMap, params);
     }
 
 
@@ -114,8 +109,6 @@ public class MainActivity extends Activity {
 
         log.append("User : ");
         log.append("(" + x + " , " + y + ")");
-
-        mResult.setText(log.toString());
 
         userPosition = new PointF(x, y);
 
