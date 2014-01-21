@@ -6,34 +6,19 @@ import android.os.Bundle;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.bluetooth.le.model.BeaconModel;
+import com.bluetooth.le.model.Store;
 import com.bluetooth.le.samspathfinder.MapSurfaceView;
-import com.bluetooth.le.samspathfinder.StoreMap;
 
 public class MainActivity extends Activity {
 
-    private BeaconModel[] data;
+
     private TextView mResult;
 
     private MapSurfaceView mStoreMap;
 
-    /**
-     * Data from the server
-     * Object Type refer to StoreMap (AISLE = 1 ,WALKABLE = 2)
-     * 0;1;1;2;8 - OBJECT Type ; X coordinate ; Y coordinate ; Width ; Height
-     */
-    private String storeMapData = "1;1;1;2;10&1;4;1;2;10&1;7;1;2;10";
+    private Store mCurrentStore;
 
-    /**
-     * Data from the server
-     * Number of horizontal tiles the map is divided into
-     */
-    private int storeMapWidth = 10;
-
-    /**
-     * Data from the server
-     * Number of Vertical tiles the map is divided into
-     */
-    private int storeMapHeight = 14;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,18 +27,16 @@ public class MainActivity extends Activity {
 
         mResult = (TextView) findViewById(R.id.result_text);
 
-        data = new BeaconModel[3];
-        data[0] = new BeaconModel(1f, 1f, 3.605551f);
-        data[1] = new BeaconModel(4f, 6f, 2.236067f);
-        data[2] = new BeaconModel(5f, 4f, 1.414213f);
+        mCurrentStore = new Store();
 
-        getUserPosition();
+        //getUserPosition();
 
         drawMap();
     }
 
+
     private void drawMap() {
-        mStoreMap = new MapSurfaceView(MainActivity.this, new StoreMap(storeMapWidth, storeMapHeight, storeMapData, new PointF(storeMapWidth - 1, storeMapHeight - 1)));
+        mStoreMap = new MapSurfaceView(MainActivity.this, mCurrentStore);
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         ((RelativeLayout) findViewById(R.id.container)).addView(mStoreMap, params);
     }
@@ -86,6 +69,8 @@ public class MainActivity extends Activity {
     public PointF getUserPosition() {
         //TODO : ADD Null checks
         PointF userPosition;
+
+        BeaconModel[] data = mCurrentStore.getBeacons();
 
         float x1 = data[0].getPoint().x;
         float x2 = data[1].getPoint().x;
@@ -135,46 +120,6 @@ public class MainActivity extends Activity {
         userPosition = new PointF(x, y);
 
         return userPosition;
-    }
-
-
-    public static class BeaconModel {
-        private PointF mPoint;
-        private float mDistanceFromUser;
-
-        public BeaconModel(float x, float y) {
-            mPoint = new PointF(x, y);
-        }
-
-        public BeaconModel(float x, float y, float distance) {
-            mPoint = new PointF(x, y);
-            mDistanceFromUser = distance;
-        }
-
-        public void BeaconModel(PointF point) {
-            mPoint = point;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + mPoint.x + " , " + mPoint.y + ") Distance : " + mDistanceFromUser;
-        }
-
-        public PointF getPoint() {
-            return mPoint;
-        }
-
-        public void setPoint(PointF mPoint) {
-            this.mPoint = mPoint;
-        }
-
-        public float getDistanceFromUser() {
-            return mDistanceFromUser;
-        }
-
-        public void setDistanceFromUser(float mDistanceFromUser) {
-            this.mDistanceFromUser = mDistanceFromUser;
-        }
     }
 
 

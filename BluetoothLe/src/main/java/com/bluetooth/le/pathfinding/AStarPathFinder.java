@@ -257,10 +257,10 @@ public class AStarPathFinder implements PathFinder {
     /**
      * Check if a given location is valid for the supplied mover
      *
-     * @param sx    The starting x coordinate
-     * @param sy    The starting y coordinate
-     * @param x     The x coordinate of the location to check
-     * @param y     The y coordinate of the location to check
+     * @param sx The starting x coordinate
+     * @param sy The starting y coordinate
+     * @param x  The x coordinate of the location to check
+     * @param y  The y coordinate of the location to check
      * @return True if the location is valid for the given mover
      */
     protected boolean isValidLocation(int sx, int sy, int x, int y) {
@@ -276,24 +276,24 @@ public class AStarPathFinder implements PathFinder {
     /**
      * Get the cost to move through a given location
      *
-     * @param sx    The x coordinate of the tile whose cost is being determined
-     * @param sy    The y coordiante of the tile whose cost is being determined
-     * @param tx    The x coordinate of the target location
-     * @param ty    The y coordinate of the target location
+     * @param sx The x coordinate of the tile whose cost is being determined
+     * @param sy The y coordiante of the tile whose cost is being determined
+     * @param tx The x coordinate of the target location
+     * @param ty The y coordinate of the target location
      * @return The cost of movement through the given tile
      */
     public float getMovementCost(int sx, int sy, int tx, int ty) {
-        return map.getCost( sx, sy, tx, ty);
+        return map.getCost(sx, sy, tx, ty);
     }
 
     /**
      * Get the heuristic cost for the given location. This determines in which
      * order the locations are processed.
      *
-     * @param x     The x coordinate of the tile whose cost is being determined
-     * @param y     The y coordiante of the tile whose cost is being determined
-     * @param tx    The x coordinate of the target location
-     * @param ty    The y coordinate of the target location
+     * @param x  The x coordinate of the tile whose cost is being determined
+     * @param y  The y coordiante of the tile whose cost is being determined
+     * @param tx The x coordinate of the target location
+     * @param ty The y coordinate of the target location
      * @return The heuristic cost assigned to the tile
      */
     public float getHeuristicCost(int x, int y, int tx, int ty) {

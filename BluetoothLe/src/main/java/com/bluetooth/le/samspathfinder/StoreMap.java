@@ -1,9 +1,7 @@
 package com.bluetooth.le.samspathfinder;
 
-import android.graphics.PointF;
 import android.util.Log;
 
-import com.bluetooth.le.pathfinding.Mover;
 import com.bluetooth.le.pathfinding.TileBasedMap;
 
 /**
@@ -29,10 +27,7 @@ public class StoreMap implements TileBasedMap {
      * The terrain settings for each tile in the map
      */
     private int[][] terrain;
-    /**
-     * The user tile position on the map
-     */
-    private PointF mUserPosition;
+
     /**
      * Indicator if a given tile has been visited during the search
      */
@@ -44,7 +39,7 @@ public class StoreMap implements TileBasedMap {
      * What Object is at each tile
      * Map Id to Load
      */
-    public StoreMap(int width, int height, String data, PointF userPostition) {
+    public StoreMap(int width, int height, String data) {
         WIDTH = width;
         HEIGHT = height;
 
@@ -56,8 +51,6 @@ public class StoreMap implements TileBasedMap {
             String[] lineData = line.split(";");
             fillArea(Integer.parseInt(lineData[1]), Integer.parseInt(lineData[2]), Integer.parseInt(lineData[3]), Integer.parseInt(lineData[4]), Integer.parseInt(lineData[0]));
         }
-
-        mUserPosition = userPostition;
     }
 
     /**
@@ -108,26 +101,10 @@ public class StoreMap implements TileBasedMap {
         return terrain[x][y];
     }
 
-    public PointF getUserPosition() {
-        return mUserPosition;
-    }
-
-    public void setUserPosition(PointF userPosition) {
-        mUserPosition = userPosition;
-    }
-
-    public void setUserPosition(float x, float y) {
-        mUserPosition = new PointF(x , y);
-    }
     /**
      * @see TileBasedMap#blocked(int, int)
      */
     public boolean blocked(int x, int y) {
-        // if theres a user at the location, then it's blocked
-        if (mUserPosition.x == x && mUserPosition.y == y) {
-            return true;
-        }
-
         return terrain[x][y] == AISLE;
     }
 
