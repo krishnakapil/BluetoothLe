@@ -1,52 +1,41 @@
 package com.bluetooth.le;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.PointF;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+
+import com.bluetooth.le.model.BeaconModel;
+import com.bluetooth.le.model.Store;
 
 public class MainActivity extends Activity {
 
-    private BeaconModel[] data;
-    private TextView mResult;
+    private Store mCurrentStore;
+
+    private Button showMapBtn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mResult = (TextView) findViewById(R.id.result_text);
+        mCurrentStore = new Store();
 
-        data = new BeaconModel[3];
-        data[0] = new BeaconModel(1f, 1f, 3.605551f);
-        data[1] = new BeaconModel(4f, 6f, 2.236067f);
-        data[2] = new BeaconModel(5f, 4f, 1.414213f);
+        showMapBtn = (Button) findViewById(R.id.showmapBtn);
+        showMapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                startActivity(intent);
+            }
+        });
 
-        getUserPosition();
+        //getUserPosition();
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     //Method to find user coordinates based on 3 nearest points
 
@@ -75,6 +64,8 @@ public class MainActivity extends Activity {
     public PointF getUserPosition() {
         //TODO : ADD Null checks
         PointF userPosition;
+
+        BeaconModel[] data = mCurrentStore.getBeacons();
 
         float x1 = data[0].getPoint().x;
         float x2 = data[1].getPoint().x;
@@ -119,51 +110,9 @@ public class MainActivity extends Activity {
         log.append("User : ");
         log.append("(" + x + " , " + y + ")");
 
-        mResult.setText(log.toString());
-
         userPosition = new PointF(x, y);
 
         return userPosition;
-    }
-
-
-    public static class BeaconModel {
-        private PointF mPoint;
-        private float mDistanceFromUser;
-
-        public BeaconModel(float x, float y) {
-            mPoint = new PointF(x, y);
-        }
-
-        public BeaconModel(float x, float y, float distance) {
-            mPoint = new PointF(x, y);
-            mDistanceFromUser = distance;
-        }
-
-        public void BeaconModel(PointF point) {
-            mPoint = point;
-        }
-
-        @Override
-        public String toString() {
-            return "(" + mPoint.x + " , " + mPoint.y + ") Distance : " + mDistanceFromUser;
-        }
-
-        public PointF getPoint() {
-            return mPoint;
-        }
-
-        public void setPoint(PointF mPoint) {
-            this.mPoint = mPoint;
-        }
-
-        public float getDistanceFromUser() {
-            return mDistanceFromUser;
-        }
-
-        public void setDistanceFromUser(float mDistanceFromUser) {
-            this.mDistanceFromUser = mDistanceFromUser;
-        }
     }
 
 
