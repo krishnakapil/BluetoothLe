@@ -1,7 +1,5 @@
 package com.bluetooth.le.model;
 
-import android.graphics.PointF;
-
 import com.bluetooth.le.DummyData;
 import com.bluetooth.le.samspathfinder.StoreMap;
 
@@ -38,14 +36,8 @@ public class Store {
      */
     private StoreMap map;
 
-    /**
-     * The user tile position on the map
-     */
-    private PointF mUserPosition;
-
     public Store() {
         this(DummyData.storeId,DummyData.mapData,DummyData.storeWidth,DummyData.storeHeight,DummyData.beacons,DummyData.categories);
-        mUserPosition = DummyData.userPosition;
     }
 
     /**
@@ -64,25 +56,6 @@ public class Store {
         mBeacons = beacons;
         mCategories = categories;
         map = new StoreMap(mWidth, mHeight, mMapData);
-    }
-
-    public PointF getUserPosition() {
-        if (mUserPosition == null) {
-            mUserPosition = new PointF(mWidth - 1, mHeight - 1);
-        }
-        return mUserPosition;
-    }
-
-    public void setUserPosition(PointF userPosition) {
-        mUserPosition = userPosition;
-    }
-
-    public void setUserPosition(float x, float y) {
-        if (mUserPosition == null) {
-            mUserPosition = new PointF(x, y);
-        } else {
-            mUserPosition.set(x, y);
-        }
     }
 
     public Category[] getCategories() {

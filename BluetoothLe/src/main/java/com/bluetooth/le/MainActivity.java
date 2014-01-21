@@ -1,39 +1,32 @@
 package com.bluetooth.le;
 
 import android.app.Activity;
-import android.content.Intent;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.graphics.PointF;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 
 import com.bluetooth.le.model.BeaconModel;
 import com.bluetooth.le.model.Store;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements MainFragment.MainFragmentInterface {
 
     private Store mCurrentStore;
-
-    private Button showMapBtn;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        loadHomeFragment();
         mCurrentStore = new Store();
+    }
 
-        showMapBtn = (Button) findViewById(R.id.showmapBtn);
-        showMapBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, MapActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        //getUserPosition();
+    private void loadHomeFragment() {
+        Fragment newFragment = new MainFragment();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.add(R.id.container,newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
     }
 
 
@@ -116,4 +109,12 @@ public class MainActivity extends Activity {
     }
 
 
+    @Override
+    public void OnSearchSubmitted(String query) {
+        Fragment newFragment = SearchResultFragment.newInstance(query);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
 }

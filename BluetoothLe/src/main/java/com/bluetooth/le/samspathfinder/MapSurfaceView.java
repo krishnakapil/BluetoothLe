@@ -6,13 +6,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.bluetooth.le.model.BeaconModel;
 import com.bluetooth.le.model.Category;
 import com.bluetooth.le.model.Store;
+import com.bluetooth.le.model.User;
 import com.bluetooth.le.pathfinding.AStarPathFinder;
 import com.bluetooth.le.pathfinding.Path;
 import com.bluetooth.le.pathfinding.PathFinder;
@@ -120,27 +120,24 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         mHeight = h;
     }
 
-    @Override
+    /*@Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
         //moveUserTo(9, 1);
         drawPath(mStore.getCategory(Category.APPAREL).getPosition().x,mStore.getCategory(Category.APPAREL).getPosition().y);
         //moveUserTo(4, 1);
         return true;
-    }
+    }*/
 
     public void drawPath(int newX,int newY) {
-        path = finder.findPath((int) mStore.getUserPosition().x, (int) mStore.getUserPosition().y, newX, newY);
-        Canvas c = getHolder().lockCanvas();
-        onDraw(c);
-        getHolder().unlockCanvasAndPost(c);
+        path = finder.findPath((int) User.getInstance().getUserPosition().x, (int) User.getInstance().getUserPosition().y, newX, newY);
     }
 
     public void moveUserTo(int newX, int newY) {
         mNewX = newX;
         mNewY = newY;
         DRAW_TYPE = DRAW_MOVE_USER;
-        while (mStore.getUserPosition().y >= mNewY) {
+        while (User.getInstance().getUserPosition().y >= mNewY) {
             Canvas c = null;
             try {
                 c = getHolder().lockCanvas();
@@ -209,7 +206,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     }
                 }
 
-                if (mStore.getUserPosition().x == x && mStore.getUserPosition().y == y) {
+                if (User.getInstance().getUserPosition().x == x && User.getInstance().getUserPosition().y == y) {
                     //Draw User
                     canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
                 }
@@ -237,14 +234,14 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         switch (DRAW_TYPE) {
             case DRAW_MOVE_USER:
-                float userMapX = mStore.getUserPosition().x * mTileWidth;
+                float userMapX = User.getInstance().getUserPosition().x * mTileWidth;
                 float userMapY;
-                float oldX = mStore.getUserPosition().x;
-                float oldY = mStore.getUserPosition().y;
-                float pathY = mStore.getUserPosition().y;
+                float oldX = User.getInstance().getUserPosition().x;
+                float oldY = User.getInstance().getUserPosition().y;
+                float pathY = User.getInstance().getUserPosition().y;
                 oldY = oldY - SPEED;
-                mStore.setUserPosition(oldX, oldY);
-                userMapY = mStore.getUserPosition().y * mTileHeight;
+                User.getInstance().setUserPosition(oldX, oldY);
+                userMapY = User.getInstance().getUserPosition().y * mTileHeight;
                 canvas.drawCircle(userMapX + mTileWidth / 2, userMapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
                 break;
             case DRAW_MOVE_NONE:
