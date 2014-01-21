@@ -7,6 +7,8 @@ import com.bluetooth.le.model.BeaconModel;
 import com.bluetooth.le.model.Category;
 import com.bluetooth.le.model.StoreItem;
 
+import java.util.HashMap;
+
 /**
  * Created by stadiko on 1/20/14.
  */
@@ -23,7 +25,7 @@ public class DummyData {
     public static PointF userPosition = new PointF(storeWidth - 1, storeHeight - 1);
     public static BeaconModel[] beacons;
     public static Category[] categories;
-    public static StoreItem[] items;
+    public static HashMap<String,StoreItem> items;
 
     static {
         beacons = new BeaconModel[6];
@@ -48,18 +50,18 @@ public class DummyData {
         categories[10] = new Category(Category.JEWELRY, "Jewelry", beacons[5], new Point(8,14), new PointF(9.5f,14f));
         categories[11] = new Category(Category.OFFICE, "Office", beacons[5], new Point(12,14), new PointF(11f,14f));
 
-        items = new StoreItem[12];
-        items[0] = new StoreItem("item1",categories[0],"Vizio Tv",600.00);
-        items[1] = new StoreItem("item1",categories[1],"Vizio Tv",600.00);
-        items[2] = new StoreItem("item1",categories[2],"Vizio Tv",600.00);
-        items[3] = new StoreItem("item1",categories[3],"Vizio Tv",600.00);
-        items[4] = new StoreItem("item1",categories[4],"Vizio Tv",600.00);
-        items[5] = new StoreItem("item1",categories[5],"Vizio Tv",600.00);
-        items[6] = new StoreItem("item1",categories[6],"Vizio Tv",600.00);
-        items[7] = new StoreItem("item1",categories[7],"Vizio Tv",600.00);
-        items[8] = new StoreItem("item1",categories[8],"Vizio Tv",600.00);
-        items[9] = new StoreItem("item1",categories[9],"Vizio Tv",600.00);
-        items[10] = new StoreItem("item1",categories[10],"Vizio Tv",600.00);
-        items[11] = new StoreItem("item1",categories[11],"Vizio Tv",600.00);
+        items = new HashMap<String, StoreItem>();
+        items.put("item1",new StoreItem("item1",categories[0],"Vizio Tv",600.00));
+        items.put("item2",new StoreItem("item2",categories[1],"Tall Kitchen Bags",6.97));
+        items.put("item3",new StoreItem("item3",categories[2],"Sofa",150.00));
+        items.put("item4",new StoreItem("item4",categories[3],"Jeans",20.00));
+        items.put("item5",new StoreItem("item5",categories[4],"Xbox One",500.00));
+        items.put("item6",new StoreItem("item6",categories[5],"Iron Man Figure",10.00));
+        items.put("item7",new StoreItem("item7",categories[6],"Milk",5.00));
+        items.put("item8",new StoreItem("item8",categories[7],"Spiderman",10.00));
+        items.put("item9",new StoreItem("item9",categories[8],"Tire",70.00));
+        items.put("item10",new StoreItem("item10",categories[9],"Advil",600.00));
+        items.put("item11",new StoreItem("item11",categories[10],"Necklace",50.00));
+        items.put("item12",new StoreItem("item12",categories[11],"Calculator",20.00));
     }
 }
