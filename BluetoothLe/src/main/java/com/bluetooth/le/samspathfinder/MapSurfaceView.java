@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -16,6 +17,10 @@ import com.bluetooth.le.model.User;
 import com.bluetooth.le.pathfinding.AStarPathFinder;
 import com.bluetooth.le.pathfinding.Path;
 import com.bluetooth.le.pathfinding.PathFinder;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by stadiko on 1/13/14.
@@ -43,6 +48,8 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private Paint mUserPaint;
     private Paint mBeaconPaint;
     private Paint mTextPaint;
+    private Paint mSmallTextPaint;
+    private Paint mItemPaint;
 
     /**
      * The path finder we'll use to search our map
@@ -51,7 +58,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     /**
      * The last path found for the current unit
      */
-    private Path path;
+    private Path[] paths;
     /**
      * Width of the MapSurfaceView in the parent
      */
@@ -68,6 +75,8 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
      * Height of each tile in the map. Calculated based on mHeight
      */
     private float mTileHeight;
+
+    private User mUser;
 
     public MapSurfaceView(Context context) {
         this(context, null, 0);
@@ -87,6 +96,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public MapSurfaceView(Context context, AttributeSet attrs, int defStyle, Store store) {
         super(context, attrs, defStyle);
+        mUser = User.getInstance();
         mStoreMap = store.getMap();
         finder = new AStarPathFinder(mStoreMap, 500, false);
         mStore = store;
@@ -120,24 +130,61 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         mHeight = h;
     }
 
-    /*@Override
-    public boolean onTouchEvent(MotionEvent event) {
-        super.onTouchEvent(event);
-        //moveUserTo(9, 1);
-        drawPath(mStore.getCategory(Category.APPAREL).getPosition().x,mStore.getCategory(Category.APPAREL).getPosition().y);
-        //moveUserTo(4, 1);
-        return true;
-    }*/
-
-    public void drawPath(int newX,int newY) {
-        path = finder.findPath((int) User.getInstance().getUserPosition().x, (int) User.getInstance().getUserPosition().y, newX, newY);
+    public void drawPath(int newX, int newY) {
+        paths = new Path[1];
+        paths[0] = finder.findPath((int) mUser.getUserPosition().x, (int) mUser.getUserPosition().y, newX, newY);
     }
+
+    public void drawPaths(ArrayList<Point> positions) {
+        sortComparePoint = new Point((int) mUser.getUserPosition().x, (int) mUser.getUserPosition().y);
+        ArrayList<Point> newPositions = new ArrayList<Point>();
+        while(positions.size() > 0) {
+            Collections.sort(positions, new PositionComparator());
+            newPositions.add(positions.get(0));
+            sortComparePoint = positions.get(0);
+            positions.remove(0);
+        }
+
+        paths = new Path[newPositions.size()];
+        int prevX = (int) mUser.getUserPosition().x;
+        int prevY = (int) mUser.getUserPosition().y;
+        for (int i = 0; i < paths.length; i++) {
+            paths[i] = finder.findPath(prevX, prevY, newPositions.get(i).x, newPositions.get(i).y);
+            prevX = newPositions.get(i).x;
+            prevY = newPositions.get(i).y;
+        }
+    }
+
+    public class PathComparator implements Comparator<Path> {
+        @Override
+        public int compare(Path o1, Path o2) {
+            int a = o1.getLength();
+            int b = o2.getLength();
+            return a > b ? -1
+                    : a < b ? 1
+                    : 0;
+        }
+    }
+
+    private Point sortComparePoint;
+
+    public class PositionComparator implements Comparator<Point> {
+        @Override
+        public int compare(Point o1, Point o2) {
+            int a = finder.findPath(sortComparePoint.x, sortComparePoint.y, o1.x, o1.y).getLength();
+            int b = finder.findPath(sortComparePoint.x, sortComparePoint.y, o2.x, o2.y).getLength();
+            return a < b ? -1
+                    : a > b ? 1
+                    : 0;
+        }
+    }
+
 
     public void moveUserTo(int newX, int newY) {
         mNewX = newX;
         mNewY = newY;
         DRAW_TYPE = DRAW_MOVE_USER;
-        while (User.getInstance().getUserPosition().y >= mNewY) {
+        while (mUser.getUserPosition().y >= mNewY) {
             Canvas c = null;
             try {
                 c = getHolder().lockCanvas();
@@ -181,6 +228,16 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             mTextPaint.setTextAlign(Paint.Align.LEFT);
             mTextPaint.setTextSize(50);
         }
+        if (mSmallTextPaint == null) {
+            mSmallTextPaint = new Paint();
+            mSmallTextPaint.setColor(Color.WHITE);
+            mSmallTextPaint.setTextAlign(Paint.Align.CENTER);
+            mSmallTextPaint.setTextSize(30);
+        }
+        if (mItemPaint == null) {
+            mItemPaint = new Paint();
+            mItemPaint.setColor(Color.BLACK);
+        }
         canvas.drawColor(Color.WHITE);
 
         mTileWidth = canvas.getWidth() / mStoreMap.getWidthInTiles();
@@ -200,16 +257,28 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                     canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mDebugPaint);//TODO: REMOVE THIS . FOR DEUBG PURPOSE
                 }
 
-                if (path != null) {
-                    if (path.contains(x, y)) {
-                        canvas.drawRect(mapX + mTileWidth / 3, mapY + mTileHeight / 3, mapX + mTileWidth * 2 / 3, mapY + mTileHeight * 2 / 3, mPathPaint);
+                if (paths != null) {
+                    for (Path path : paths) {
+                        if (path.contains(x, y)) {
+                            canvas.drawRect(mapX + mTileWidth / 3, mapY + mTileHeight / 3, mapX + mTileWidth * 2 / 3, mapY + mTileHeight * 2 / 3, mPathPaint);
+                        }
                     }
                 }
 
-                if (User.getInstance().getUserPosition().x == x && User.getInstance().getUserPosition().y == y) {
+                if (mUser.getUserPosition().x == x && mUser.getUserPosition().y == y) {
                     //Draw User
                     canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
                 }
+            }
+        }
+
+        if (paths != null) {
+            for (int i = 0; i < paths.length; i++) {
+                Path path = paths[i];
+                mapX = path.getStep(path.getLength() - 1).getX() * mTileWidth;
+                mapY = path.getStep(path.getLength() - 1).getY() * mTileHeight;
+                canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 3, mItemPaint);
+                canvas.drawText((i + 1) + "", mapX + mTileWidth / 2, mapY + mTileHeight / 2, mSmallTextPaint);
             }
         }
 
@@ -234,14 +303,14 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         switch (DRAW_TYPE) {
             case DRAW_MOVE_USER:
-                float userMapX = User.getInstance().getUserPosition().x * mTileWidth;
+                float userMapX = mUser.getUserPosition().x * mTileWidth;
                 float userMapY;
-                float oldX = User.getInstance().getUserPosition().x;
-                float oldY = User.getInstance().getUserPosition().y;
-                float pathY = User.getInstance().getUserPosition().y;
+                float oldX = mUser.getUserPosition().x;
+                float oldY = mUser.getUserPosition().y;
+                float pathY = mUser.getUserPosition().y;
                 oldY = oldY - SPEED;
-                User.getInstance().setUserPosition(oldX, oldY);
-                userMapY = User.getInstance().getUserPosition().y * mTileHeight;
+                mUser.setUserPosition(oldX, oldY);
+                userMapY = mUser.getUserPosition().y * mTileHeight;
                 canvas.drawCircle(userMapX + mTileWidth / 2, userMapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
                 break;
             case DRAW_MOVE_NONE:

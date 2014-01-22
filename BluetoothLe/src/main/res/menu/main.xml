@@ -2,8 +2,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.bluetooth.le.MainActivity" >
     
-    <item android:id="@+id/action_settings"
-        android:title="@string/action_settings"
-        android:orderInCategory="100"
-        android:showAsAction="never" />
+    <item android:id="@+id/list_item"
+        android:title="@string/my_list"
+        android:showAsAction="always"
+        android:actionLayout="@layout/menu_item_layout"
+        android:icon="@drawable/ic_action_collections_view_as_list"/>
 </menu>
