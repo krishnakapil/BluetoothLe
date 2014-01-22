@@ -7,5 +7,6 @@
     <string name="show_map">Show Map</string>
     <string name="my_list">My List</string>
     <string name="search">Search</string>
+    <string name="show_on_map">Show On Map</string>
 
 </resources>

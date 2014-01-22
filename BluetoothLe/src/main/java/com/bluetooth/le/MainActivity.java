@@ -9,7 +9,7 @@ import android.os.Bundle;
 import com.bluetooth.le.model.BeaconModel;
 import com.bluetooth.le.model.Store;
 
-public class MainActivity extends Activity implements MainFragment.MainFragmentInterface {
+public class MainActivity extends Activity implements MainFragment.MainFragmentInterface, SearchResultFragment.SearchResultFragmentInterface {
 
     private Store mCurrentStore;
 
@@ -21,10 +21,19 @@ public class MainActivity extends Activity implements MainFragment.MainFragmentI
         mCurrentStore = new Store();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (getFragmentManager().getBackStackEntryCount() == 1) {
+            finish();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void loadHomeFragment() {
         Fragment newFragment = new MainFragment();
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.add(R.id.container,newFragment);
+        transaction.add(R.id.container, newFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }
@@ -112,6 +121,24 @@ public class MainActivity extends Activity implements MainFragment.MainFragmentI
     @Override
     public void OnSearchSubmitted(String query) {
         Fragment newFragment = SearchResultFragment.newInstance(query);
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    @Override
+    public void OnMyListClicked() {
+        Fragment newFragment = new UserListFragment();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.container, newFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
+    @Override
+    public void OnListButtonClicked() {
+        Fragment newFragment = new UserListFragment();
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.container, newFragment);
         transaction.addToBackStack(null);
