@@ -19,4 +19,6 @@ android {
 }
 
 dependencies {
+    compile files('libs/estimote-sdk-preview.jar')
+    compile files('libs/guava-15.0.jar')
 }

@@ -1,0 +1,43 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/search_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="15dp"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/search_field"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:padding="10dp"
+            android:hint="@string/search" />
+
+        <ImageButton
+            android:id="@+id/search_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_search"
+            android:background="@null" />
+
+    </LinearLayout>
+
+
+    <ListView
+        android:id="@+id/bluetooth_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/search_area"
+        android:layout_margin="15dp"
+        android:padding="10dp" />
+
+</RelativeLayout>

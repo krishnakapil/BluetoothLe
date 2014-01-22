@@ -2,11 +2,16 @@ package com.bluetooth.le;
 
 import android.app.Activity;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.RelativeLayout;
 
+import com.bluetooth.le.bluetooth.BeaconTracker;
 import com.bluetooth.le.model.Store;
 import com.bluetooth.le.model.StoreItem;
+import com.bluetooth.le.model.User;
 import com.bluetooth.le.samspathfinder.MapSurfaceView;
 
 import java.util.ArrayList;
@@ -23,6 +28,7 @@ public class MapActivity extends Activity {
     private Store mCurrentStore;
     private StoreItem mCurrentItem;
     private boolean showList = false;
+    private BeaconTracker mBeaconTracker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,22 @@ public class MapActivity extends Activity {
         }
         mCurrentStore = new Store();
         drawMap();
+
+        mBeaconTracker = new BeaconTracker(this);
+        mBeaconTracker.setListener(new BeaconTracker.Listener() {
+            @Override
+            public void atBeacon(String id, PointF position) {
+                if(position != null) {
+                    User.getInstance().setUserPosition(position.x, position.y);
+                    mStoreMap.refreshUserOnMap();
+                }
+            }
+
+            @Override
+            public void onFinishedRefreshing() {
+
+            }
+        });
     }
 
     private void drawMap() {
@@ -69,5 +91,35 @@ public class MapActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mBeaconTracker.refreshPosition();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBeaconTracker.stop();
+    }
+
+    public static final String REFRESH_MENU_ITEM = "Refresh user position";
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(REFRESH_MENU_ITEM.equals(item.getTitle())) {
+            mBeaconTracker.refreshPosition();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(REFRESH_MENU_ITEM);
+        return true;
     }
 }
