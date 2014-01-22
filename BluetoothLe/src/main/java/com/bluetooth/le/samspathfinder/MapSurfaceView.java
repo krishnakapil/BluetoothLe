@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -51,29 +52,11 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     private Paint mSmallTextPaint;
     private Paint mItemPaint;
 
-    /**
-     * The path finder we'll use to search our map
-     */
     private PathFinder finder;
-    /**
-     * The last path found for the current unit
-     */
     private Path[] paths;
-    /**
-     * Width of the MapSurfaceView in the parent
-     */
     private int mWidth;
-    /**
-     * Height of the MapSurafceView in the parent
-     */
     private int mHeight;
-    /**
-     * Width of each tile in the map. Calculated based on mWidth
-     */
     private float mTileWidth;
-    /**
-     * Height of each tile in the map. Calculated based on mHeight
-     */
     private float mTileHeight;
 
     private User mUser;
@@ -128,6 +111,13 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         super.onSizeChanged(w, h, oldw, oldh);
         mWidth = w;
         mHeight = h;
+    }
+
+    public void refreshUserOnMap() {
+        mUser.setUserPosition(new PointF(0f,0f));
+        Canvas c = getHolder().lockCanvas();
+        onDraw(c);
+        getHolder().unlockCanvasAndPost(c);
     }
 
     public void drawPath(int newX, int newY) {
@@ -272,6 +262,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             }
         }
 
+        //Drawing items on map
         if (paths != null) {
             for (int i = 0; i < paths.length; i++) {
                 Path path = paths[i];
