@@ -22,7 +22,6 @@ public class Category {
 
     private int categoryId;
     private String categoryName;
-    private BeaconModel beacon;
     private Point position;//walkable position on the map for user(used for navigation)
 
     /**
@@ -30,10 +29,9 @@ public class Category {
      */
     private PointF textTilePositionOnMap;
 
-    public Category(int categoryId, String categoryName, BeaconModel beacon, Point position, PointF textTilePositionOnMap) {
+    public Category(int categoryId, String categoryName, Point position, PointF textTilePositionOnMap) {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
-        this.beacon = beacon;
         this.position = position;
         this.textTilePositionOnMap = textTilePositionOnMap;
     }
@@ -50,9 +48,6 @@ public class Category {
         return categoryName;
     }
 
-    public BeaconModel getBeacon() {
-        return beacon;
-    }
 
     public Point getPosition(){
         return position;

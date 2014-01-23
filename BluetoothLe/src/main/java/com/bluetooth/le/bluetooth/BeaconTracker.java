@@ -1,11 +1,13 @@
 package com.bluetooth.le.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.bluetooth.le.DummyData;
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.Region;
 
@@ -27,24 +29,27 @@ public class BeaconTracker {
 
     public BeaconTracker(Context context) {
         mContext = context;
-        mBeaconPositionMap = new HashMap<String, PointF>();
         mHandler = new Handler();
-        setPositionForBeacon("C0:77:77:16:CC:E7", new PointF(0.0f, 0.0f));
-        setPositionForBeacon("C3:DF:51:99:ED:E6", new PointF(14.0f, 19.0f));
-    }
-
-    private HashMap<String, PointF> mBeaconPositionMap;
-
-    public void setPositionForBeacon(String beaconId, PointF point) {
-        mBeaconPositionMap.put(beaconId, point);
     }
 
     private boolean mIsRefreshing;
 
-    private static final int POLL_DURATION = 6000;
+    private static final int POLL_DURATION = 10000;
+
+    public static boolean setBluetooth(boolean enable) {
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        boolean isEnabled = bluetoothAdapter.isEnabled();
+        if (enable && !isEnabled) {
+            return bluetoothAdapter.enable();
+        } else if (!enable && isEnabled) {
+            return bluetoothAdapter.disable();
+        }
+        // No need to change bluetooth state
+        return true;
+    }
 
     public void refreshPosition() {
-        if(mIsRefreshing) {
+        if (mIsRefreshing) {
             return;
         }
 
@@ -59,32 +64,37 @@ public class BeaconTracker {
     }
 
     private void start() {
+        setBluetooth(true);
         com.estimote.sdk.utils.L.enableDebugLogging(true);
 
-        mBeaconList = new BeaconHolder(mContext);
-
-        estimoteTracker = new EstimoteHelper(mContext);
-        estimoteTracker.setListener(new EstimoteHelper.Listener() {
+        Handler bluetoothDelayHandler = new Handler();
+        bluetoothDelayHandler.postDelayed(new Runnable() {
             @Override
-            public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
-                for (Beacon beacon : beacons) {
-                    mBeaconList.addBeaconData(beacon);
-                }
+            public void run() {
+                mBeaconList = new BeaconHolder(mContext);
+
+                estimoteTracker = new EstimoteHelper(mContext);
+                estimoteTracker.setListener(new EstimoteHelper.Listener() {
+                    @Override
+                    public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+                        for (Beacon beacon : beacons) {
+                            mBeaconList.addBeaconData(beacon);
+                        }
+                    }
+                });
+                estimoteTracker.init();
+                estimoteTracker.start();
             }
-        });
-        estimoteTracker.init();
-        estimoteTracker.start();
+        }, 3000);
     }
 
     public void stop() {
-        if(mIsRefreshing) {
+        if (mIsRefreshing) {
             estimoteTracker.stop();
             estimoteTracker.destroy();
             mIsRefreshing = false;
 
-            if(mListener != null) {
-                mListener.onFinishedRefreshing();
-            }
+            mBeaconList.getNearestBeaconPoint();
         }
     }
 
@@ -94,10 +104,6 @@ public class BeaconTracker {
         private HashMap<String, BeaconData> mBeaconMap;
         private ArrayList<BeaconData> mBeaconList;
 
-        private int mCurrentSort;
-        public static final int SORT_NAME = 0;
-
-        private BeaconData mCurrentNearbyBeacon;
 
         public BeaconHolder(Context context) {
             mContext = context;
@@ -108,7 +114,7 @@ public class BeaconTracker {
         public void addBeaconData(Beacon beacon) {
             String address = beacon.getMacAddress();
             BeaconData beaconData = mBeaconMap.get(address);
-            if(beaconData != null) {
+            if (beaconData != null) {
                 Log.i(TAG, "Updating beacon: " + address + ", " + beacon.getRssi());
                 beaconData.setRSSI(beacon.getRssi());
             } else {
@@ -118,17 +124,37 @@ public class BeaconTracker {
                 mBeaconList.add(beaconData);
                 sort();
             }
+        }
 
-            checkIfNear(beaconData);
+        public void getNearestBeaconPoint() {
+            int max = BeaconData.RSSI_RANGE;
+            PointF point = null;
+            String address= null;
+            if (mBeaconList != null) {
+                for (BeaconData beaconData : mBeaconList) {
+                    if (beaconData.getRSSI() >= max) {
+                        max = beaconData.getRSSI();
+                        address = beaconData.getAddress();
+                        point = DummyData.beacons.get(address).getPoint();
+                    }
+                }
+            }
+
+            if (mListener != null) {
+                if(point != null) {
+                    mListener.atBeacon(address,point);
+                } else {
+                    mListener.onFinishedRefreshing();
+                }
+            }
         }
 
         private void checkIfNear(BeaconData beaconData) {
-            if(beaconData.isClose() && beaconData != mCurrentNearbyBeacon) {
-                mCurrentNearbyBeacon = beaconData;
+            if (beaconData.isClose()) {
                 String address = beaconData.getAddress();
                 Toast.makeText(mContext, "Near: " + address, Toast.LENGTH_LONG).show();
-                if(mListener != null) {
-                    mListener.atBeacon(address, mBeaconPositionMap.get(address));
+                if (mListener != null) {
+                    mListener.atBeacon(address, DummyData.beacons.get(address).getPoint());
                 }
                 stop();
             }
@@ -163,6 +189,7 @@ public class BeaconTracker {
     }
 
     public static class BeaconData {
+        public static final int RSSI_RANGE = -72;
         private String mBeaconAddress;
         private int mRSSI;
         private int mAverageRSSI;
@@ -185,7 +212,7 @@ public class BeaconTracker {
             mAverageRSSI = totalRSSI / mRSSISetCount;
 
             mPreviousRSSIs.add(rssi);
-            while(mPreviousRSSIs.size() > PREVIOUS_RSSI_COUNT) {
+            while (mPreviousRSSIs.size() > PREVIOUS_RSSI_COUNT) {
                 mPreviousRSSIs.removeFirst();
             }
         }
@@ -193,12 +220,12 @@ public class BeaconTracker {
         public boolean isClose() {
             boolean isClose = false;
 
-            if(mPreviousRSSIs.size() == PREVIOUS_RSSI_COUNT) {
+            if (mPreviousRSSIs.size() == PREVIOUS_RSSI_COUNT) {
                 int total = 0;
                 for (Integer mPreviousRSSI : mPreviousRSSIs) {
                     total += mPreviousRSSI;
                 }
-                if(total / PREVIOUS_RSSI_COUNT > -72) {
+                if (total / PREVIOUS_RSSI_COUNT > RSSI_RANGE) {
                     return true;
                 }
             }
@@ -225,7 +252,7 @@ public class BeaconTracker {
     }
 
     public int getCount() {
-        if(mBeaconList != null) {
+        if (mBeaconList != null) {
             return mBeaconList.getCount();
         }
 
@@ -233,7 +260,7 @@ public class BeaconTracker {
     }
 
     public BeaconData getBeacon(int index) {
-        if(mBeaconList != null) {
+        if (mBeaconList != null) {
             return mBeaconList.getBeacon(index);
         }
 

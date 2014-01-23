@@ -35,11 +35,12 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
     public static int DRAW_TYPE = 0;
 
-    private enum PATH_DIRECTION {TOP, LEFT, BOTTOM, RIGHT};
+    private enum PATH_DIRECTION {TOP, LEFT, BOTTOM, RIGHT}
+
+    ;
 
     private float userX;
     private float userY;
-    private static float SPEED = 8f;//Higher the value .. slower the user will move
 
     private SurfaceHolder mHolder;
     private Store mStore;
@@ -112,7 +113,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            moveUserTo(0,0);
+            //moveUserTo(0,0);
         }
 
         return true;
@@ -131,7 +132,17 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         getHolder().unlockCanvasAndPost(c);
     }
 
-    public void moveUserTo(int newX, int newY) {
+    private UserMoveInterface mListener;
+
+    public interface UserMoveInterface {
+        public void userMoveFinished();
+    }
+
+    public void setMoveUserListener(UserMoveInterface listener) {
+        mListener = listener;
+    }
+
+    public void moveUserTo(int newX, int newY, float speed) {
         mUserPath = finder.findPath((int) mUser.getUserPosition().x, (int) mUser.getUserPosition().y, newX, newY);
 
         DRAW_TYPE = DRAW_MOVE_USER;
@@ -150,13 +161,13 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         while (mUserPath != null && mUserCurrentStepIndex < mUserPath.getLength() - 1) {
             cnt++;
             if (axisChange == PATH_DIRECTION.LEFT) {
-                userX = mUserPath.getStep(mUserCurrentStepIndex).getX() - (cnt / SPEED);
+                userX = mUserPath.getStep(mUserCurrentStepIndex).getX() - (cnt / speed);
             } else if (axisChange == PATH_DIRECTION.RIGHT) {
-                userX = mUserPath.getStep(mUserCurrentStepIndex).getX() + (cnt / SPEED);
+                userX = mUserPath.getStep(mUserCurrentStepIndex).getX() + (cnt / speed);
             } else if (axisChange == PATH_DIRECTION.TOP) {
-                userY = mUserPath.getStep(mUserCurrentStepIndex).getY() - (cnt / SPEED);
+                userY = mUserPath.getStep(mUserCurrentStepIndex).getY() - (cnt / speed);
             } else {
-                userY = mUserPath.getStep(mUserCurrentStepIndex).getY() + (cnt / SPEED);
+                userY = mUserPath.getStep(mUserCurrentStepIndex).getY() + (cnt / speed);
             }
 
             Canvas c = null;
@@ -171,7 +182,7 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
 
-            if (cnt / SPEED >= 1.0) {
+            if (cnt / speed >= 1.0) {
                 mUserCurrentStepIndex++;
                 cnt = 0;
                 if (mUserPath != null && mUserCurrentStepIndex + 1 < mUserPath.getLength()) {
@@ -183,17 +194,21 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
 
         DRAW_TYPE = DRAW_MOVE_NONE;
         mUserPath = null;
+
+        if(mListener != null){
+            mListener.userMoveFinished();
+        }
     }
 
     private PATH_DIRECTION setNextStepDirection(Path path, float x, float y, int index) {
         Path.Step step = path.getStep(index + 1);
         PATH_DIRECTION direction;
-        if(step.getX() < x) {
+        if (step.getX() < x) {
             direction = PATH_DIRECTION.LEFT;
-        } else if(step.getX() > x) {
+        } else if (step.getX() > x) {
             direction = PATH_DIRECTION.RIGHT;
-        } else if(step.getY() < y) {
-            direction =  PATH_DIRECTION.TOP;
+        } else if (step.getY() < y) {
+            direction = PATH_DIRECTION.TOP;
         } else {
             direction = PATH_DIRECTION.BOTTOM;
         }
@@ -203,9 +218,15 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
         return direction;
     }
 
+    public void clearMap(){
+        paths = null;
+        reDraw();
+    }
+
     public void drawPath(int newX, int newY) {
         paths = new Path[1];
         paths[0] = finder.findPath((int) mUser.getUserPosition().x, (int) mUser.getUserPosition().y, newX, newY);
+        reDraw();
     }
 
     public void drawPaths(ArrayList<Point> positions) {
@@ -226,6 +247,24 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
             prevX = newPositions.get(i).x;
             prevY = newPositions.get(i).y;
         }
+
+        reDraw();
+    }
+
+    public void reDraw() {
+        if (getHolder() != null) {
+            Canvas c = null;
+            try {
+                c = getHolder().lockCanvas();
+                synchronized (getHolder()) {
+                    onDraw(c);
+                }
+            } finally {
+                if (c != null) {
+                    getHolder().unlockCanvasAndPost(c);
+                }
+            }
+        }
     }
 
     private Point sortComparePoint;
@@ -245,114 +284,114 @@ public class MapSurfaceView extends SurfaceView implements SurfaceHolder.Callbac
     @Override
     protected void onDraw(Canvas canvas) {
 
-        if (mAislePaint == null) {
-            mAislePaint = new Paint();
-            mAislePaint.setColor(Color.parseColor("#7fbef3"));
-        }
-        if (mDebugPaint == null) {
-            mDebugPaint = new Paint();
-            mDebugPaint.setColor(Color.WHITE);
-        }
-        if (mPathPaint == null) {
-            mPathPaint = new Paint();
-            mPathPaint.setColor(Color.parseColor("#cde79f"));
-        }
-        if (mUserPaint == null) {
-            mUserPaint = new Paint();
-            mUserPaint.setColor(Color.parseColor("#61c46d"));
-        }
-        if (mTextPaint == null) {
-            mTextPaint = new Paint();
-            mTextPaint.setColor(Color.BLACK);
-            mTextPaint.setTextAlign(Paint.Align.LEFT);
-            mTextPaint.setTextSize(50);
-        }
-        if (mSmallTextPaint == null) {
-            mSmallTextPaint = new Paint();
-            mSmallTextPaint.setColor(Color.WHITE);
-            mSmallTextPaint.setTextAlign(Paint.Align.CENTER);
-            mSmallTextPaint.setTextSize(30);
-        }
-        if (mItemPaint == null) {
-            mItemPaint = new Paint();
-            mItemPaint.setColor(Color.BLACK);
-        }
-        canvas.drawColor(Color.WHITE);
+        if(canvas != null) {
+            if (mAislePaint == null) {
+                mAislePaint = new Paint();
+                mAislePaint.setColor(Color.parseColor("#7fbef3"));
+            }
+            if (mDebugPaint == null) {
+                mDebugPaint = new Paint();
+                mDebugPaint.setColor(Color.WHITE);
+            }
+            if (mPathPaint == null) {
+                mPathPaint = new Paint();
+                mPathPaint.setColor(Color.parseColor("#cde79f"));
+            }
+            if (mUserPaint == null) {
+                mUserPaint = new Paint();
+                mUserPaint.setColor(Color.parseColor("#61c46d"));
+            }
+            if (mTextPaint == null) {
+                mTextPaint = new Paint();
+                mTextPaint.setColor(Color.BLACK);
+                mTextPaint.setTextAlign(Paint.Align.LEFT);
+                mTextPaint.setTextSize(50);
+            }
+            if (mSmallTextPaint == null) {
+                mSmallTextPaint = new Paint();
+                mSmallTextPaint.setColor(Color.WHITE);
+                mSmallTextPaint.setTextAlign(Paint.Align.CENTER);
+                mSmallTextPaint.setTextSize(30);
+            }
+            if (mItemPaint == null) {
+                mItemPaint = new Paint();
+                mItemPaint.setColor(Color.BLACK);
+            }
+            canvas.drawColor(Color.WHITE);
 
-        mTileWidth = canvas.getWidth() / mStoreMap.getWidthInTiles();
-        mTileHeight = canvas.getHeight() / mStoreMap.getHeightInTiles();
+            mTileWidth = canvas.getWidth() / mStoreMap.getWidthInTiles();
+            mTileHeight = canvas.getHeight() / mStoreMap.getHeightInTiles();
 
-        float strokeWidth = 5;
-        float mapX;
-        float mapY;
-        //Draw Tiles
-        for (int x = 0; x < mStoreMap.getWidthInTiles(); x++) {
-            for (int y = 0; y < mStoreMap.getHeightInTiles(); y++) {
-                mapX = x * mTileWidth;
-                mapY = y * mTileHeight;
-                if (mStoreMap.getTerrain(x, y) == StoreMap.AISLE) {
-                    canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mAislePaint);
-                } else {
-                    canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mDebugPaint);//TODO: REMOVE THIS . FOR DEUBG PURPOSE
-                }
+            float strokeWidth = 5;
+            float mapX;
+            float mapY;
+            //Draw Tiles
+            for (int x = 0; x < mStoreMap.getWidthInTiles(); x++) {
+                for (int y = 0; y < mStoreMap.getHeightInTiles(); y++) {
+                    mapX = x * mTileWidth;
+                    mapY = y * mTileHeight;
+                    if (mStoreMap.getTerrain(x, y) == StoreMap.AISLE) {
+                        canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mAislePaint);
+                    } else {
+                        canvas.drawRect(mapX, mapY, mapX + mTileWidth, mapY + mTileHeight, mDebugPaint);//TODO: REMOVE THIS . FOR DEUBG PURPOSE
+                    }
 
-                if (paths != null) {
-                    for (Path path : paths) {
-                        if (path.contains(x, y)) {
-                            mPathPaint.setColor(Color.parseColor("#6a8835"));
-                            mPathPaint.setStrokeWidth(strokeWidth);
-                            mPathPaint.setStyle(Paint.Style.STROKE);
-                            canvas.drawRoundRect(new RectF(mapX + mTileWidth / 3, mapY + mTileHeight / 3, mapX + mTileWidth * 2 / 3, mapY + mTileHeight * 2 / 3), 5, 5, mPathPaint);
+                    if (paths != null) {
+                        for (Path path : paths) {
+                            if (path.contains(x, y)) {
+                                mPathPaint.setColor(Color.parseColor("#6a8835"));
+                                mPathPaint.setStrokeWidth(strokeWidth);
+                                mPathPaint.setStyle(Paint.Style.STROKE);
+                                canvas.drawRoundRect(new RectF(mapX + mTileWidth / 3, mapY + mTileHeight / 3, mapX + mTileWidth * 2 / 3, mapY + mTileHeight * 2 / 3), 5, 5, mPathPaint);
 
-                            mPathPaint.setColor(Color.parseColor("#cde79f"));
-                            mPathPaint.setStrokeWidth(0);
-                            mPathPaint.setStyle(Paint.Style.FILL);
-                            canvas.drawRect(mapX + mTileWidth / 3 + strokeWidth, mapY + mTileHeight / 3 + strokeWidth, mapX + mTileWidth * 2 / 3 - strokeWidth, mapY + mTileHeight * 2 / 3 - strokeWidth, mPathPaint);
+                                mPathPaint.setColor(Color.parseColor("#cde79f"));
+                                mPathPaint.setStrokeWidth(0);
+                                mPathPaint.setStyle(Paint.Style.FILL);
+                                canvas.drawRect(mapX + mTileWidth / 3 + strokeWidth, mapY + mTileHeight / 3 + strokeWidth, mapX + mTileWidth * 2 / 3 - strokeWidth, mapY + mTileHeight * 2 / 3 - strokeWidth, mPathPaint);
+                            }
                         }
                     }
-                }
 
-                if (mUser.getUserPosition().x == x && mUser.getUserPosition().y == y && DRAW_TYPE != DRAW_MOVE_USER) {
-                    drawUser(canvas, mapX + mTileWidth / 2, mapY + mTileHeight / 2);
+                    if (mUser.getUserPosition().x == x && mUser.getUserPosition().y == y && DRAW_TYPE != DRAW_MOVE_USER) {
+                        drawUser(canvas, mapX + mTileWidth / 2, mapY + mTileHeight / 2);
+                    }
                 }
             }
-        }
 
-        //Drawing items on map
-        if (paths != null) {
-            for (int i = 0; i < paths.length; i++) {
-                Path path = paths[i];
-                mapX = path.getStep(path.getLength() - 1).getX() * mTileWidth;
-                mapY = path.getStep(path.getLength() - 1).getY() * mTileHeight;
-                canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 3, mItemPaint);
-                canvas.drawText((i + 1) + "", mapX + mTileWidth / 2, mapY + mTileHeight / 2, mSmallTextPaint);
+            //Drawing items on map
+            if (paths != null) {
+                for (int i = 0; i < paths.length; i++) {
+                    Path path = paths[i];
+                    mapX = path.getStep(path.getLength() - 1).getX() * mTileWidth;
+                    mapY = path.getStep(path.getLength() - 1).getY() * mTileHeight;
+                    canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 3, mItemPaint);
+                    canvas.drawText((i + 1) + "", mapX + mTileWidth / 2, mapY + mTileHeight / 2, mSmallTextPaint);
+                }
+            }
+
+            //Draw Category Text
+            canvas.save();
+            canvas.rotate(90);
+            for (Category category : mStore.getCategories()) {
+                mapX = category.getTextTilePositionOnMap().x * mTileWidth;
+                mapY = category.getTextTilePositionOnMap().y * mTileHeight;
+                canvas.drawText(category.getCategoryName(), mapY, -mapX, mTextPaint);
+            }
+            canvas.restore();
+
+            switch (DRAW_TYPE) {
+                case DRAW_MOVE_USER:
+                    if (mUserPath != null) {
+                        mapX = userX * mTileWidth;
+                        mapY = userY * mTileHeight;
+                        drawUser(canvas, mapX + mTileWidth / 2, mapY + mTileHeight / 2);
+                        canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
+                    }
+                    break;
+                case DRAW_MOVE_NONE:
+                    break;
             }
         }
-
-        //Draw Category Text
-        canvas.save();
-        canvas.rotate(90);
-        for (Category category : mStore.getCategories()) {
-            mapX = category.getTextTilePositionOnMap().x * mTileWidth;
-            mapY = category.getTextTilePositionOnMap().y * mTileHeight;
-            canvas.drawText(category.getCategoryName(), mapY, -mapX, mTextPaint);
-        }
-        canvas.restore();
-
-        switch (DRAW_TYPE) {
-            case DRAW_MOVE_USER:
-                if (mUserPath != null) {
-                    mapX = userX * mTileWidth;
-                    mapY = userY * mTileHeight;
-                    drawUser(canvas, mapX + mTileWidth / 2, mapY + mTileHeight / 2);
-                    canvas.drawCircle(mapX + mTileWidth / 2, mapY + mTileHeight / 2, mTileWidth / 4, mUserPaint);
-                }
-                break;
-            case DRAW_MOVE_NONE:
-                break;
-        }
-
-
     }
 
 

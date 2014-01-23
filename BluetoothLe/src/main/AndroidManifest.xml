@@ -30,8 +30,7 @@
         <activity
             android:name="com.bluetooth.le.MapActivity"
             android:configChanges="orientation"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Holo.Light.NoActionBar" />
+            android:screenOrientation="portrait" />
 
         <service android:name="com.estimote.sdk.service.BeaconService"
                  android:exported="false"/>

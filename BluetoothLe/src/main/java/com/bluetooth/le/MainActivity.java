@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements MainFragment.MainFragmentI
         //TODO : ADD Null checks
         PointF userPosition;
 
-        BeaconModel[] data = mCurrentStore.getBeacons();
+        BeaconModel[] data = new BeaconModel[0];//mCurrentStore.getBeacons();
 
         float x1 = data[0].getPoint().x;
         float x2 = data[1].getPoint().x;

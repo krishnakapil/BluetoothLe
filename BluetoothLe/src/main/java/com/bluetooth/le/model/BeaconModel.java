@@ -7,14 +7,6 @@ import android.graphics.PointF;
  */
 public class BeaconModel {
 
-    //UUID
-    public static final String AISLE_1_TOP = "AISLE-0001-TOP";
-    public static final String AISLE_1_BOTTOM = "AISLE-0001-BOTTOM";
-    public static final String AISLE_2_TOP = "AISLE-0002-TOP";
-    public static final String AISLE_2_BOTTOM = "AISLE-0002-BOTTOM";
-    public static final String AISLE_3_TOP = "AISLE-0003-TOP";
-    public static final String AISLE_3_BOTTOM = "AISLE-0003-BOTTOM";
-
     private String mBeaconId;
     private PointF mPoint;
     private float mDistanceFromUser;

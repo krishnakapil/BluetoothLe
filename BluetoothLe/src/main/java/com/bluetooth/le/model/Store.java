@@ -3,6 +3,8 @@ package com.bluetooth.le.model;
 import com.bluetooth.le.DummyData;
 import com.bluetooth.le.samspathfinder.StoreMap;
 
+import java.util.HashMap;
+
 /**
  * Created by stadiko on 1/20/14.
  */
@@ -10,7 +12,7 @@ public class Store {
 
     private String mStoreId;
 
-    private BeaconModel[] mBeacons;
+    private HashMap<String,BeaconModel> mBeacons;
     private Category[] mCategories;
     /**
      * Data from the server
@@ -48,7 +50,7 @@ public class Store {
      * @param beacons    Beacons in the store
      * @param categories Categories in the store
      */
-    public Store(String storeId, String mapData, int mapWidth, int mapHeight, BeaconModel[] beacons, Category[] categories) {
+    public Store(String storeId, String mapData, int mapWidth, int mapHeight, HashMap<String,BeaconModel> beacons, Category[] categories) {
         mStoreId = storeId;
         mMapData = mapData;
         mWidth = mapWidth;
@@ -74,7 +76,7 @@ public class Store {
         return map;
     }
 
-    public BeaconModel[] getBeacons() {
+    public HashMap<String,BeaconModel> getBeacons() {
         return mBeacons;
     }
 
