@@ -22,7 +22,7 @@ public class DummyData {
     public static String mapData = "1;1;1;3;18&1;6;1;3;18&1;11;1;3;18";
     public static int storeWidth = 15;
     public static int storeHeight = 20;
-    public static PointF userPosition = new PointF(storeWidth - 1, storeHeight - 1);
+    public static PointF userPosition = new PointF(storeWidth-1, storeHeight-1);
     public static BeaconModel[] beacons;
     public static Category[] categories;
     public static HashMap<String,StoreItem> items;
