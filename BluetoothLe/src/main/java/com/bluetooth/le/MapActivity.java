@@ -15,7 +15,6 @@ import android.widget.RelativeLayout;
 import com.bluetooth.le.bluetooth.BeaconTracker;
 import com.bluetooth.le.model.Store;
 import com.bluetooth.le.model.StoreItem;
-import com.bluetooth.le.model.User;
 import com.bluetooth.le.samspathfinder.MapSurfaceView;
 
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class MapActivity extends Activity {
             @Override
             public void atBeacon(String id, PointF position) {
                 if (position != null) {
-                    if (!isRefreshingLocation) {
+                    /*if (!isRefreshingLocation) {
                         User.getInstance().setUserPosition(position);
                         mStoreMap.refreshUserOnMap();
                         loadPaths();
@@ -86,7 +85,16 @@ public class MapActivity extends Activity {
                             }
                         });
                         mStoreMap.moveUserTo((int) position.x, (int) position.y, 4f);
-                    }
+                    }*/
+
+                    mStoreMap.clearMap();
+                    mStoreMap.setMoveUserListener(new MapSurfaceView.UserMoveInterface() {
+                        @Override
+                        public void userMoveFinished() {
+                            loadPaths();
+                        }
+                    });
+                    mStoreMap.moveUserTo((int) position.x, (int) position.y, 4f);
 
                 }
 
@@ -97,7 +105,7 @@ public class MapActivity extends Activity {
                 }
                 BeaconTracker.setBluetooth(false);
                 setProgressBarIndeterminateVisibility(false);
-                startRefreshTimer();
+                //startRefreshTimer();
             }
 
             @Override
@@ -110,7 +118,7 @@ public class MapActivity extends Activity {
 
                 BeaconTracker.setBluetooth(false);
                 setProgressBarIndeterminateVisibility(false);
-                startRefreshTimer();
+                //startRefreshTimer();
             }
         });
 
